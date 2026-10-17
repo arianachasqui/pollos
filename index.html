@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a0a0a"><meta name="apple-mobile-web-app-capable" content="yes">
+<title>Nuevo Amanecer</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/icons/icon-192.png">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-title" content="Nuevo Amanecer">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="description" content="Control de lotes de pollos: gastos, pesos, ventas y ganancias.">
+<style>
+:root{--bg:#0a0a0a;--card:#141714;--tx:#f2efe4;--mu:#9aa89a;--gr:#d4af37;--au:#d4af37;--ln:#3a3320;--bad:#e5645c;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+main{max-width:640px;margin:0 auto;padding:14px}
+h1,h2{font-family:Georgia,'Times New Roman',serif;font-weight:600;letter-spacing:.03em;color:var(--au)}
+h1{font-size:26px;margin:6px 0 4px}h2{font-size:18px;margin:0 0 10px}
+.sub{margin:0 0 16px;padding-bottom:10px;border-bottom:1px solid var(--au);letter-spacing:.14em;text-transform:uppercase;font-size:11px}
+.c{background:var(--card);border:1px solid var(--ln);border-top:2px solid var(--gr);border-radius:6px;padding:16px;margin-bottom:14px}
+label{display:block;font-size:13px;color:var(--mu);margin:8px 0 3px}
+input,select{width:100%;padding:10px;font-size:16px;border:1px solid var(--ln);border-radius:6px;background:#0e110e;color:var(--tx)}
+input:focus,select:focus{outline:0;border-color:var(--au)}
+.r{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+button{font:inherit;border:1px solid var(--au);border-radius:6px;padding:11px 14px;background:var(--gr);color:#04120a;font-weight:700;letter-spacing:.05em;cursor:pointer}
+button.g{background:transparent;color:var(--au)}button.x{background:transparent;color:var(--bad);border:0;padding:4px 8px}
+.w{width:100%;margin-top:12px}
+.tabs{display:flex;gap:6px;margin-bottom:14px;overflow-x:auto}.tabs button{flex:1;background:var(--card);color:var(--tx);border:1px solid var(--ln);padding:9px 6px;font-size:14px;font-weight:600}.tabs button.on{background:var(--gr);color:#04120a;border-color:var(--au)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--ln)}.row:last-child{border:0}
+.mu{color:var(--mu);font-size:13px}.big{font-size:22px;font-weight:700}.ok{color:var(--gr)}.bad{color:var(--bad)}.au{color:var(--au)}
+.pg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pk{border:1px solid var(--ln);border-radius:6px;padding:8px;background:#0e110e}.pk.d{opacity:.55;border-color:var(--bad)}.pk.s{border-color:var(--au)}
+.pk .h{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--au);margin-bottom:4px}
+.pk .h button{padding:2px 8px;font-size:12px;background:transparent;color:var(--bad);border-color:var(--bad)}
+.cat{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.cat button{background:#0e110e;color:var(--tx);border:1px solid var(--ln);padding:8px 2px;font-size:14px;display:flex;flex-direction:column;align-items:center;gap:2px}
+.cat button small{font-size:11px;color:var(--mu);font-weight:400;letter-spacing:0}
+.cat button.on{background:var(--gr);color:#04120a;border-color:var(--au)}.cat button.on small{color:#04120a}.cat button:disabled{opacity:.35;cursor:default}
+.tot{background:#0e110e;border:1px solid var(--au);border-radius:6px;padding:10px;text-align:center;margin-top:10px;font-weight:700;color:var(--au)}
+.k{display:grid;grid-template-columns:1fr 1fr;gap:10px}.k div{background:#0e110e;border:1px solid var(--ln);border-radius:6px;padding:10px}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}.tiles button{background:#0e110e;color:var(--tx);border:1px solid var(--ln);padding:16px 8px;display:flex;flex-direction:column;align-items:center;gap:6px;font-size:15px}.tiles button span{font-size:34px}.tiles button.on{border-color:var(--au);background:#2a2412}
+.st{display:flex;align-items:center;justify-content:center;gap:18px;margin:10px 0}.st button{width:48px;height:48px;font-size:26px;padding:0}.st b{font-size:28px;min-width:48px;text-align:center}
+</style><script src="/xlsx.full.min.js" defer></script></head><body><main id="app"></main>
+<script>
+const K='pollos_v1';let S=null;
+try{S=JSON.parse(localStorage.getItem(K))}catch(e){}
+if(!S)S={lotes:[],p:{}};
+S.p=Object.assign({pueblo:7500,pop:8000,visPop:5000,visPue:3500,bulto:100000},S.p);
+if(!S.p.visPue)S.p.visPue=3500;
+const save=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}};
+const $=s=>document.querySelector(s);
+const $$=n=>'$'+Math.round(n||0).toLocaleString('es-CO');
+const fd=d=>d.split('-').reverse().join('/');
+const num=v=>parseFloat(String(v).replace(',','.'))||0;
+const sum=(a,f)=>a.reduce((s,x)=>s+f(x),0);
+const nv=()=>({cli:'',dest:'pue',vis:0,pl:S.p.pueblo,pv:S.p.visPue,sel:[]});
+let ui={id:null,tab:'pollos',g:null,q:1,v:nv()};
+const L=()=>S.lotes.find(l=>l.id===ui.id);
+const dead=l=>{l.m=l.m||{};return l.m};
+const sold=l=>{const s=new Set();l.ventas.forEach(v=>(v.idx||[]).forEach(i=>s.add(i)));return s};
+function stats(l){const m=dead(l);const lb=sum(l.pesos.map((p,i)=>m[i]?0:p),x=>x);const g=sum(l.gastos,x=>x.v),v=sum(l.ventas,x=>x.total);
+return{g,v,gan:v-g,lb,lv:sum(l.ventas,x=>x.lb),pv:sum(l.ventas,x=>x.n),mu:Object.keys(m).length}}
+function go(id,tab){ui.id=id;ui.tab=tab||'pollos';ui.g=null;ui.v=nv();render();scrollTo(0,0)}
+function crear(){const f=$('#fe').value,n=parseInt($('#cn').value),pp=num($('#cp').value);
+if(!f||!n)return alert('Pon la fecha y la cantidad de pollos');
+const l={id:Date.now(),num:S.lotes.length+1,fecha:f,cant:n,pesos:Array(n).fill(0),m:{},gastos:[],ventas:[]};
+if(pp)l.gastos.push({c:'Pollitos ('+n+')',v:pp*n});
+S.lotes.push(l);save();go(l.id)}
+function precio(k,v){S.p[k]=num(v);save()}
+function borrarLote(){if(confirm('¿Borrar este lote completo?')){S.lotes=S.lotes.filter(l=>l.id!==ui.id);save();ui.id=null;render()}}
+function peso(i,v){const l=L();l.pesos[i]=num(v);save();tp()}
+function tp(){const l=L(),s=stats(l),m=dead(l);$('#pt').textContent=s.lb.toFixed(1)+' lb · '+(l.cant-s.mu)+' vivos · '+s.mu+' muertos'}
+function muerte(i){const l=L(),m=dead(l);if(m[i])delete m[i];else{if(sold(l).has(i))return alert('Este pollo ya fue vendido');m[i]=1}save();render()}
+function selG(k){ui.g=ui.g===k?null:k;ui.q=1;render()}
+function qty(d){ui.q=Math.max(1,ui.q+d);$('#qn').textContent=ui.q;$('#qt').textContent=$$(ui.q*S.p.bulto)}
+function addB(){L().gastos.push({c:'Bultos de alimento x'+ui.q,v:ui.q*S.p.bulto});ui.g=null;save();render()}
+function addG(k){const v=num($('#gv').value);const c=k==='vit'?'Vitamina':k==='tra'?'Transporte':($('#gc').value.trim());
+if(!c||!v)return alert('Falta el valor'+(k==='otro'?' o el concepto':''));L().gastos.push({c,v});ui.g=null;save();render()}
+function delG(i){L().gastos.splice(i,1);save();render()}
+function tog(i){const s=ui.v.sel,k=s.indexOf(i);if(k<0)s.push(i);else s.splice(k,1);render()}
+function dest(d){ui.v.dest=d;ui.v.pl=d==='pop'?S.p.pop:S.p.pueblo;ui.v.pv=d==='pop'?S.p.visPop:S.p.visPue;render()}
+function vtot(){const l=L(),v=ui.v;const lb=sum(v.sel,i=>l.pesos[i]);return{lb,t:lb*v.pl+(v.vis?v.pv*v.sel.length:0)}}
+function upd(){const x=vtot();$('#vt').textContent='Total: '+$$(x.t)+' · '+ui.v.sel.length+' pollo(s) · '+x.lb.toFixed(1)+' lb'}
+function addV(){const l=L(),v=ui.v;if(!v.sel.length)return alert('Selecciona al menos un pollo');
+const x=vtot();l.ventas.push({cli:v.cli.trim()||'Cliente',dest:v.dest,idx:v.sel.slice().sort((a,b)=>a-b),lb:x.lb,n:v.sel.length,pl:v.pl,vis:!!v.vis,pv:v.pv,total:x.t});
+ui.v=nv();save();render()}
+function delV(i){L().ventas.splice(i,1);save();render()}
+let ip=null;addEventListener('beforeinstallprompt',e=>{e.preventDefault();ip=e});
+addEventListener('appinstalled',()=>{ip=null;render()});
+const enApp=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone;
+async function instalar(){if(ip){ip.prompt();try{await ip.userChoice}catch(e){}ip=null;return}
+const ios=/iphone|ipad|ipod/i.test(navigator.userAgent);
+alert(ios?'En iPhone/iPad (Safari): toca el botón Compartir y luego "Agregar a pantalla de inicio".':'En Android: abre el menú del navegador (⋮) y elige "Instalar app" o "Agregar a pantalla de inicio".')}
+function instCard(){return enApp()?'':`<div class="c"><h2>Instalar la app</h2><p class="mu">Agrega Nuevo Amanecer a la pantalla de inicio de tu celular o computador. Funciona también sin internet.</p><button class="w" onclick="instalar()">Instalar aplicación</button></div>`}
+function setGS(k,v){S.gs=S.gs||{};S.gs[k]=String(v).trim();save()}
+async function enviar(){const g=S.gs||{},st=$('#gst');if(!g.url)return alert('Pega la URL del Apps Script');if(!S.lotes.length)return alert('Aún no hay lotes');
+st.textContent='Enviando…';const body=JSON.stringify({token:g.token||'',sheetId:S.sheet||'',tablas:tablas()});
+try{let j=null;try{const r=await fetch(g.url,{method:'POST',body});j=await r.json()}
+catch(e){await fetch(g.url,{method:'POST',mode:'no-cors',body})}
+if(j&&j.ok===false)throw new Error(j.error||'Error');st.textContent='Enviado ✓ '+new Date().toLocaleTimeString('es-CO')}
+catch(e){st.textContent='Error: '+e.message}}
+function setSheet(v){const m=String(v).match(/\/d\/([a-zA-Z0-9_-]+)/);S.sheet=m?m[1]:String(v).trim();save();const a=$('#sl');if(a)a.href=sheetUrl()}
+function sheetUrl(){return S.sheet?'https://docs.google.com/spreadsheets/d/'+S.sheet+'/edit':'#'}
+function tablas(){const A={Lotes:[['Lote','Fecha','Pollos','Muertos','Vendidos','Libras vivos','Libras vendidas','Gastos','Ventas','Ganancia']],Gastos:[['Lote','Concepto','Valor']],Pollos:[['Lote','Pollo','Libras','Estado']],Ventas:[['Lote','Cliente','Destino','Pollos','Libras','Precio libra','Vísceras','Total']]};
+S.lotes.forEach(l=>{const s=stats(l),m=dead(l),sd=sold(l),n='Lote '+l.num;
+A.Lotes.push([n,l.fecha,l.cant,s.mu,s.pv,+s.lb.toFixed(1),+s.lv.toFixed(1),s.g,s.v,s.gan]);
+l.gastos.forEach(g=>A.Gastos.push([n,g.c,g.v]));
+l.pesos.forEach((p,i)=>A.Pollos.push([n,'#'+(i+1),p,m[i]?'Muerto':sd.has(i)?'Vendido':'Disponible']));
+l.ventas.forEach(v=>A.Ventas.push([n,v.cli,v.dest==='pop'?'Popayán':'Pueblo',(v.idx||[]).length?v.idx.map(j=>'#'+(j+1)).join(' '):v.n,+v.lb.toFixed(1),v.pl,v.vis?v.pv*v.n:0,v.total]))});return A}
+function guardar(n,blob){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=n;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000)}
+async function bajar(){if(!S.lotes.length)return alert('Aún no hay lotes');const A=tablas();
+if(window.XLSX){const wb=XLSX.utils.book_new();for(const k in A)XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(A[k]),k);
+guardar('nuevo-amanecer.xlsx',new Blob([XLSX.write(wb,{type:'array',bookType:'xlsx'})],{type:'application/octet-stream'}))}
+else guardar('nuevo-amanecer-lotes.csv',new Blob(['\ufeff'+A.Lotes.map(r=>r.join(',')).join('\n')],{type:'text/csv'}))}
+async function copiar(){if(!S.lotes.length)return alert('Aún no hay lotes');const A=tablas();
+const t=Object.keys(A).map(k=>k+'\n'+A[k].map(r=>r.join('\t')).join('\n')).join('\n\n');
+try{await navigator.clipboard.writeText(t)}catch(e){const x=document.createElement('textarea');x.value=t;document.body.appendChild(x);x.select();try{document.execCommand('copy')}catch(_){}x.remove()}
+alert('Datos copiados. En Google Sheets toca una celda y pega.')}
+function home(){const ls=S.lotes.slice().reverse().map(l=>{const s=stats(l);
+return `<div class="c" onclick="go(${l.id})" style="cursor:pointer"><div class="row" style="border:0;padding:0"><div><b class="au">Lote ${l.num}</b> <span class="mu">· ${fd(l.fecha)}</span><div class="mu">${l.cant} pollos · ${s.lb.toFixed(1)} lb · ${s.mu} muertos</div></div>
+<div style="text-align:right"><div class="mu">Ganancia</div><b class="${s.gan>=0?'ok':'bad'}">${$$(s.gan)}</b></div></div></div>`}).join('');
+const P=(k,t)=>`<div><label>${t}</label><input type="number" inputmode="numeric" value="${S.p[k]}" oninput="precio('${k}',this.value)"></div>`;
+return `<h1>Nuevo Amanecer</h1><p class="mu sub">Control de lotes · Avícola</p>
+<div class="c"><h2>Nuevo lote</h2><label>Fecha de entrada</label><input id="fe" type="date" value="${new Date().toISOString().slice(0,10)}">
+<div class="r"><div><label>Cantidad de pollos</label><input id="cn" type="number" inputmode="numeric" placeholder="80"></div>
+<div><label>Precio por pollito</label><input id="cp" type="number" inputmode="numeric" placeholder="0"></div></div>
+<button class="w" onclick="crear()">Crear lote</button></div>
+${ls||'<p class="mu">Aún no tienes lotes.</p>'}
+<div class="c"><h2>Precios por defecto</h2><div class="r">${P('pueblo','Libra en el pueblo')}${P('pop','Libra en Popayán')}${P('visPue','Vísceras pueblo')}${P('visPop','Vísceras Popayán')}${P('bulto','Bulto de alimento')}</div>
+<p class="mu">Al vender puedes cambiar estos precios en cada venta.</p></div>
+<div class="c"><h2>Google Sheets y Excel</h2><p class="mu">Conecta tu hoja de cálculo para enviar todos tus lotes con un toque.</p>
+<label>Código (ID) de tu hoja de cálculo</label><input value="${S.sheet||''}" placeholder="Pega el código o el link completo" oninput="setSheet(this.value)">
+<label>URL del Apps Script (aplicación web)</label><input value="${(S.gs||{}).url||''}" placeholder="https://script.google.com/macros/s/.../exec" oninput="setGS('url',this.value)">
+<label>Clave</label><input value="${(S.gs||{}).token||''}" placeholder="La misma clave del script" oninput="setGS('token',this.value)">
+<button class="w" onclick="enviar()">Enviar a Google Sheets</button><p class="mu" id="gst" style="text-align:center;margin:8px 0 0"></p>
+<button class="w g" onclick="bajar()">Descargar Excel</button><button class="w g" onclick="copiar()">Copiar datos</button>
+<a id="sl" href="${sheetUrl()}" target="_blank" rel="noopener" onclick="if(!S.sheet){event.preventDefault();alert('Primero pega el código de tu hoja')}" style="display:block;text-align:center;margin-top:12px;padding:11px;border:1px solid var(--au);border-radius:6px;color:var(--au);font-weight:700;letter-spacing:.05em;text-decoration:none">Abrir mi hoja de Google</a></div>
+${instCard()}`}
+function lote(){const l=L(),s=stats(l),m=dead(l),sd=sold(l);
+const T=[['pollos','Pollos'],['gastos','Gastos'],['ventas','Ventas'],['res','Resumen']];let b='';
+if(ui.tab==='pollos'){b=`<div class="c"><h2>Peso de cada pollo (libras)</h2><div class="pg">${l.pesos.map((p,i)=>`<div class="pk ${m[i]?'d':sd.has(i)?'s':''}"><div class="h"><span>#${i+1}${sd.has(i)?' · vendido':''}</span><button onclick="muerte(${i})">${m[i]?'Revivir':'Murió'}</button></div><input type="number" step="0.1" inputmode="decimal" value="${p||''}" placeholder="lb" ${m[i]?'disabled':''} oninput="peso(${i},this.value)"></div>`).join('')}</div>
+<div class="tot" id="pt"></div></div>`}
+if(ui.tab==='gastos'){const g=ui.g,tl=[['bulto','🌾','Bulto'],['vit','💊','Vitamina'],['tra','🚚','Transporte'],['otro','✏️','Otro gasto']];
+let f='';
+if(g==='bulto')f=`<h2>Bultos de alimento</h2><p class="mu">${$$(S.p.bulto)} cada uno</p><div class="st"><button onclick="qty(-1)">−</button><b id="qn">${ui.q}</b><button onclick="qty(1)">+</button></div><div class="tot" id="qt">${$$(ui.q*S.p.bulto)}</div><button class="w" onclick="addB()">Agregar bultos</button>`;
+else if(g)f=`<h2>${g==='vit'?'Vitamina':g==='tra'?'Transporte':'Otro gasto'}</h2>${g==='otro'?'<label>Concepto</label><input id="gc" placeholder="Ej. Viruta, medicina">':''}<label>Valor</label><input id="gv" type="number" inputmode="numeric"><button class="w" onclick="addG('${g}')">Agregar</button>`;
+b=`<div class="c"><h2>Agregar gasto</h2><div class="tiles">${tl.map(t=>`<button class="${g===t[0]?'on':''}" onclick="selG('${t[0]}')"><span>${t[1]}</span>${t[2]}</button>`).join('')}</div>${f?`<div style="margin-top:14px">${f}</div>`:''}</div>
+<div class="c"><h2>Gastos del lote</h2>${l.gastos.map((x,i)=>`<div class="row"><span>${x.c}</span><span><b>${$$(x.v)}</b><button class="x" onclick="delG(${i})">✕</button></span></div>`).join('')||'<p class="mu">Sin gastos</p>'}<div class="tot">Total gastos: ${$$(s.g)}</div></div>`}
+if(ui.tab==='ventas'){const v=ui.v;
+const cat=l.pesos.map((p,i)=>{const on=v.sel.includes(i),why=m[i]?'muerto':sd.has(i)?'vendido':!p?'sin peso':'';
+return `<button class="${on?'on':''}" ${why?'disabled':''} onclick="tog(${i})">#${i+1}<small>${why||p+' lb'}</small></button>`}).join('');
+b=`<div class="c"><h2>Nueva venta</h2><label>Cliente</label><input value="${v.cli}" placeholder="Rumalda" oninput="ui.v.cli=this.value">
+<label>Escoge los pollos</label><div class="cat">${cat}</div>
+<div class="r"><div><label>Destino</label><select onchange="dest(this.value)"><option value="pue" ${v.dest==='pue'?'selected':''}>Pueblo</option><option value="pop" ${v.dest==='pop'?'selected':''}>Popayán</option></select></div>
+<div><label>Vísceras</label><select onchange="ui.v.vis=+this.value;render()"><option value="0">Sin vísceras</option><option value="1" ${v.vis?'selected':''}>Con vísceras</option></select></div>
+<div><label>Precio por libra</label><input type="number" inputmode="numeric" value="${v.pl}" oninput="ui.v.pl=num(this.value);upd()"></div>
+${v.vis?`<div><label>Vísceras (por pollo)</label><input type="number" inputmode="numeric" value="${v.pv}" oninput="ui.v.pv=num(this.value);upd()"></div>`:''}</div>
+<div class="tot" id="vt"></div><button class="w" onclick="addV()">Guardar venta</button></div>
+<div class="c"><h2>Ventas</h2><p class="mu">Libras sin vender: ${(s.lb-s.lv).toFixed(1)} lb</p>${l.ventas.map((x,i)=>`<div class="row"><div><b>${x.cli}</b> <span class="mu">${x.dest==='pop'?'Popayán':'Pueblo'}</span><div class="mu">${(x.idx||[]).length?x.idx.map(j=>'#'+(j+1)).join(', ')+' · ':x.n+' pollo(s) · '}${x.lb.toFixed(1)} lb × ${$$(x.pl)}${x.vis?' + vísceras '+$$(x.pv*x.n):''}</div></div><span><b>${$$(x.total)}</b><button class="x" onclick="delV(${i})">✕</button></span></div>`).join('')||'<p class="mu">Sin ventas</p>'}</div>`}
+if(ui.tab==='res'){const d=k=>l.ventas.filter(x=>x.dest===k);
+b=`<div class="c"><div class="k"><div><span class="mu">Gastos</span><div class="big bad">${$$(s.g)}</div></div><div><span class="mu">Ventas</span><div class="big">${$$(s.v)}</div></div></div>
+<div class="tot"><span class="mu">Ganancia</span><div class="big ${s.gan>=0?'ok':'bad'}">${$$(s.gan)}</div></div></div>
+<div class="c"><h2>Detalle</h2>
+<div class="row"><span>Pollos metidos</span><b>${l.cant}</b></div>
+<div class="row"><span>Muertos</span><b class="bad">${s.mu} (${Math.round(s.mu/l.cant*100)}%)</b></div>
+<div class="row"><span>Vendidos</span><b>${s.pv}</b></div>
+<div class="row"><span>Libras totales (vivos)</span><b>${s.lb.toFixed(1)} lb</b></div>
+<div class="row"><span>Libras vendidas</span><b>${s.lv.toFixed(1)} lb</b></div>
+<div class="row"><span>Costo por libra</span><b>${s.lb?$$(s.g/s.lb):'-'}</b></div>
+<div class="row"><span>Ganancia por libra vendida</span><b>${s.lv?$$(s.gan/s.lv):'-'}</b></div>
+<div class="row"><span>Margen</span><b>${s.v?Math.round(s.gan/s.v*100)+'%':'-'}</b></div>
+<div class="row"><span>Pueblo</span><b>${$$(sum(d('pue'),x=>x.total))}</b></div>
+<div class="row"><span>Popayán</span><b>${$$(sum(d('pop'),x=>x.total))}</b></div></div>
+<button class="w g" onclick="borrarLote()">Borrar lote</button>`}
+return `<button class="g" onclick="go(null)">← Lotes</button><h1>Lote ${l.num} <span class="mu" style="font-size:15px;font-family:system-ui">${fd(l.fecha)} · ${l.cant} pollos</span></h1>
+<div class="tabs">${T.map(t=>`<button class="${ui.tab===t[0]?'on':''}" onclick="go(${l.id},'${t[0]}')">${t[1]}</button>`).join('')}</div>${b}`}
+function render(){const y=scrollY;$('#app').innerHTML=ui.id&&L()?lote():home();
+if(ui.id&&ui.tab==='pollos')tp();if(ui.id&&ui.tab==='ventas')upd();scrollTo(0,y)}
+render();
+if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));
+</script></body></html>
