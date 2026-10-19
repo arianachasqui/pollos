@@ -95,7 +95,7 @@ alert(ios?'En iPhone/iPad (Safari): toca el botón Compartir y luego "Agregar a 
 function instCard(){return enApp()?'':`<div class="c"><h2>Instalar la app</h2><p class="mu">Agrega Nuevo Amanecer a la pantalla de inicio de tu celular o computador. Funciona también sin internet.</p><button class="w" onclick="instalar()">Instalar aplicación</button></div>`}
 function setGS(k,v){S.gs=S.gs||{};S.gs[k]=String(v).trim();save()}
 async function enviar(){const g=S.gs||{},st=$('#gst');if(!g.url)return alert('Pega la URL del Apps Script');if(!S.lotes.length)return alert('Aún no hay lotes');
-st.textContent='Enviando…';const body=JSON.stringify({token:g.token||'',sheetId:S.sheet||'',tablas:tablas()});
+st.textContent='Enviando…';const body=JSON.stringify({token:g.token||'',sheetId:S.sheet||'',tablas:tablas(),respaldo:{lotes:S.lotes,p:S.p}});
 try{let j=null;try{const r=await fetch(g.url,{method:'POST',body});j=await r.json()}
 catch(e){await fetch(g.url,{method:'POST',mode:'no-cors',body})}
 if(j&&j.ok===false)throw new Error(j.error||'Error');st.textContent='Enviado ✓ '+new Date().toLocaleTimeString('es-CO')}
@@ -108,6 +108,14 @@ A.Lotes.push([n,l.fecha,l.cant,s.mu,s.pv,+s.lb.toFixed(1),+s.lv.toFixed(1),s.g,s
 l.gastos.forEach(g=>A.Gastos.push([n,g.c,g.v]));
 l.pesos.forEach((p,i)=>A.Pollos.push([n,'#'+(i+1),p,m[i]?'Muerto':sd.has(i)?'Vendido':'Disponible']));
 l.ventas.forEach(v=>A.Ventas.push([n,v.cli,v.dest==='pop'?'Popayán':'Pueblo',(v.idx||[]).length?v.idx.map(j=>'#'+(j+1)).join(' '):v.n,+v.lb.toFixed(1),v.pl,v.vis?v.pv*v.n:0,v.total]))});return A}
+async function traer(){const g=S.gs||{},st=$('#gst');if(!g.url)return alert('Pega la URL del Apps Script y la clave');
+if(S.lotes.length&&!confirm('Esto reemplaza los datos de este aparato con los de Google Sheets. ¿Continuar?'))return;
+st.textContent='Trayendo datos…';
+try{const u=g.url+(g.url.includes('?')?'&':'?')+'accion=respaldo&token='+encodeURIComponent(g.token||'')+'&sheetId='+encodeURIComponent(S.sheet||'');
+const j=await (await fetch(u)).json();if(!j.ok)throw new Error(j.error||'Error');
+const d=JSON.parse(j.data);S.lotes=d.lotes||[];S.p=Object.assign(S.p,d.p||{});save();ui.id=null;render();
+alert('Listo: se cargaron '+S.lotes.length+' lote(s).')}
+catch(e){st.textContent='Error: '+e.message}}
 function guardar(n,blob){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=n;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000)}
 async function bajar(){if(!S.lotes.length)return alert('Aún no hay lotes');const A=tablas();
 if(window.XLSX){const wb=XLSX.utils.book_new();for(const k in A)XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(A[k]),k);
@@ -133,7 +141,7 @@ ${ls||'<p class="mu">Aún no tienes lotes.</p>'}
 <label>Código (ID) de tu hoja de cálculo</label><input value="${S.sheet||''}" placeholder="Pega el código o el link completo" oninput="setSheet(this.value)">
 <label>URL del Apps Script (aplicación web)</label><input value="${(S.gs||{}).url||''}" placeholder="https://script.google.com/macros/s/.../exec" oninput="setGS('url',this.value)">
 <label>Clave</label><input value="${(S.gs||{}).token||''}" placeholder="La misma clave del script" oninput="setGS('token',this.value)">
-<button class="w" onclick="enviar()">Enviar a Google Sheets</button><p class="mu" id="gst" style="text-align:center;margin:8px 0 0"></p>
+<button class="w" onclick="enviar()">Enviar a Google Sheets</button><button class="w g" onclick="traer()">Traer datos desde Google Sheets</button><p class="mu" id="gst" style="text-align:center;margin:8px 0 0"></p>
 <button class="w g" onclick="bajar()">Descargar Excel</button><button class="w g" onclick="copiar()">Copiar datos</button>
 <a id="sl" href="${sheetUrl()}" target="_blank" rel="noopener" onclick="if(!S.sheet){event.preventDefault();alert('Primero pega el código de tu hoja')}" style="display:block;text-align:center;margin-top:12px;padding:11px;border:1px solid var(--au);border-radius:6px;color:var(--au);font-weight:700;letter-spacing:.05em;text-decoration:none">Abrir mi hoja de Google</a></div>
 ${instCard()}`}
