@@ -139,7 +139,7 @@ ${ls||'<p class="mu">Aún no tienes lotes.</p>'}
 ${instCard()}`}
 function lote(){const l=L(),s=stats(l),m=dead(l),sd=sold(l);
 const T=[['pollos','Pollos'],['gastos','Gastos'],['ventas','Ventas'],['res','Resumen']];let b='';
-if(ui.tab==='pollos'){b=`<div class="c"><h2>Peso de cada pollo (libras)</h2><div class="pg">${l.pesos.map((p,i)=>`<div class="pk ${m[i]?'d':sd.has(i)?'s':''}"><div class="h"><span>#${i+1}${sd.has(i)?' · vendido':''}</span><button onclick="muerte(${i})">${m[i]?'Revivir':'Murió'}</button></div><input type="number" step="0.1" inputmode="decimal" value="${p||''}" placeholder="lb" ${m[i]?'disabled':''} oninput="peso(${i},this.value)"></div>`).join('')}</div>
+if(ui.tab==='pollos'){b=`<div class="c"><h2>Peso de cada pollo (libras)</h2><div class="pg">${l.pesos.map((p,i)=>`<div class="pk ${m[i]?'d':sd.has(i)?'s':''}"><div class="h"><span>#${i+1}${sd.has(i)?' · vendido':''}</span><button onclick="muerte(${i})">${m[i]?'Revivir':'Murió'}</button></div><input type="text" inputmode="decimal" autocomplete="off" value="${p||''}" placeholder="lb" ${m[i]?'disabled':''} oninput="peso(${i},this.value)"></div>`).join('')}</div>
 <div class="tot" id="pt"></div></div>`}
 if(ui.tab==='gastos'){const g=ui.g,tl=[['bulto','🌾','Bulto'],['vit','💊','Vitamina'],['tra','🚚','Transporte'],['otro','✏️','Otro gasto']];
 let f='';
