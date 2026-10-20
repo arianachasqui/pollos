@@ -26,7 +26,7 @@ input:focus,select:focus{outline:0;border-color:var(--au)}
 button{font:inherit;border:1px solid var(--au);border-radius:6px;padding:11px 14px;background:var(--gr);color:#04120a;font-weight:700;letter-spacing:.05em;cursor:pointer}
 button.g{background:transparent;color:var(--au)}button.x{background:transparent;color:var(--bad);border:0;padding:4px 8px}
 .w{width:100%;margin-top:12px}
-.tabs{display:flex;gap:6px;margin-bottom:14px;overflow-x:auto}.tabs button{flex:1;background:var(--card);color:var(--tx);border:1px solid var(--ln);padding:9px 6px;font-size:14px;font-weight:600}.tabs button.on{background:var(--gr);color:#04120a;border-color:var(--au)}
+.tabs{display:flex;gap:6px;margin-bottom:14px;overflow-x:auto}.tabs button{flex:1;background:var(--card);color:var(--tx);border:1px solid var(--ln);padding:9px 3px;font-size:13px;font-weight:600;white-space:nowrap}.tabs button.on{background:var(--gr);color:#04120a;border-color:var(--au)}
 .row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--ln)}.row:last-child{border:0}
 .mu{color:var(--mu);font-size:13px}.big{font-size:22px;font-weight:700}.ok{color:var(--gr)}.bad{color:var(--bad)}.au{color:var(--au)}
 .pg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
@@ -41,6 +41,17 @@ button.g{background:transparent;color:var(--au)}button.x{background:transparent;
 .k{display:grid;grid-template-columns:1fr 1fr;gap:10px}.k div{background:#0e110e;border:1px solid var(--ln);border-radius:6px;padding:10px}
 .tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}.tiles button{background:#0e110e;color:var(--tx);border:1px solid var(--ln);padding:16px 8px;display:flex;flex-direction:column;align-items:center;gap:6px;font-size:15px}.tiles button span{font-size:34px}.tiles button.on{border-color:var(--au);background:#2a2412}
 .st{display:flex;align-items:center;justify-content:center;gap:18px;margin:10px 0}.st button{width:48px;height:48px;font-size:26px;padding:0}.st b{font-size:28px;min-width:48px;text-align:center}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 6px}
+.chip{background:#0e110e;color:var(--tx);border:1px solid var(--ln);border-radius:999px;padding:9px 16px;font-weight:500;letter-spacing:0}
+.chip.on{background:var(--gr);color:#04120a;border-color:var(--au);font-weight:700}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;border:1px solid var(--au);border-radius:6px;overflow:hidden}
+.seg button{border:0;border-radius:0;background:#0e110e;color:var(--mu);padding:13px 4px;font-weight:600;letter-spacing:0}
+.seg button.on{background:var(--gr);color:#04120a}
+.badge{font-size:11px;border:1px solid var(--au);color:var(--au);border-radius:999px;padding:1px 8px;margin-left:4px}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.8);overflow:auto;z-index:30;padding:calc(16px + env(safe-area-inset-top,0px)) 14px calc(16px + env(safe-area-inset-bottom,0px))}
+.md{background:var(--card);border:1px solid var(--au);border-radius:10px;max-width:460px;margin:0 auto;padding:18px;text-align:center}
+.md .st button{border-radius:50%}.md .st input{width:120px;text-align:center;font-size:26px;font-family:Georgia,serif}.md label{text-align:left}
+.ic{font-size:54px;line-height:1}
 </style><script src="/xlsx.full.min.js" defer></script></head><body><main id="app"></main>
 <script>
 const K='pollos_v1';let S=null;
@@ -54,14 +65,14 @@ const $$=n=>'$'+Math.round(n||0).toLocaleString('es-CO');
 const fd=d=>d.split('-').reverse().join('/');
 const num=v=>parseFloat(String(v).replace(',','.'))||0;
 const sum=(a,f)=>a.reduce((s,x)=>s+f(x),0);
-const nv=()=>({cli:'',dest:'pue',vis:0,pl:S.p.pueblo,pv:S.p.visPue,sel:[]});
-let ui={id:null,tab:'pollos',g:null,q:1,v:nv()};
+const nv=()=>({cli:'',nuevo:0,dest:'pue',items:[],pago:'efectivo',est:'pago',abono:0});
+let ui={id:null,tab:'pollos',g:null,q:1,m:null,cl:[],v:nv()};
 const L=()=>S.lotes.find(l=>l.id===ui.id);
 const dead=l=>{l.m=l.m||{};return l.m};
 const sold=l=>{const s=new Set();l.ventas.forEach(v=>(v.idx||[]).forEach(i=>s.add(i)));return s};
 function stats(l){const m=dead(l);const lb=sum(l.pesos.map((p,i)=>m[i]?0:p),x=>x);const g=sum(l.gastos,x=>x.v),v=sum(l.ventas,x=>x.total);
 return{g,v,gan:v-g,lb,lv:sum(l.ventas,x=>x.lb),pv:sum(l.ventas,x=>x.n),mu:Object.keys(m).length}}
-function go(id,tab){ui.id=id;ui.tab=tab||'pollos';ui.g=null;ui.v=nv();render();scrollTo(0,0)}
+function go(id,tab){ui.id=id;ui.tab=tab||'pollos';ui.g=null;ui.m=null;ui.v=nv();render();scrollTo(0,0)}
 function crear(){const f=$('#fe').value,n=parseInt($('#cn').value),pp=num($('#cp').value);
 if(!f||!n)return alert('Pon la fecha y la cantidad de pollos');
 const l={id:Date.now(),num:S.lotes.length+1,fecha:f,cant:n,pesos:Array(n).fill(0),m:{},gastos:[],ventas:[]};
@@ -78,14 +89,57 @@ function addB(){L().gastos.push({c:'Bultos de alimento x'+ui.q,v:ui.q*S.p.bulto}
 function addG(k){const v=num($('#gv').value);const c=k==='vit'?'Vitamina':k==='tra'?'Transporte':($('#gc').value.trim());
 if(!c||!v)return alert('Falta el valor'+(k==='otro'?' o el concepto':''));L().gastos.push({c,v});ui.g=null;save();render()}
 function delG(i){L().gastos.splice(i,1);save();render()}
-function tog(i){const s=ui.v.sel,k=s.indexOf(i);if(k<0)s.push(i);else s.splice(k,1);render()}
-function dest(d){ui.v.dest=d;ui.v.pl=d==='pop'?S.p.pop:S.p.pueblo;ui.v.pv=d==='pop'?S.p.visPop:S.p.visPue;render()}
-function vtot(){const l=L(),v=ui.v;const lb=sum(v.sel,i=>l.pesos[i]);return{lb,t:lb*v.pl+(v.vis?v.pv*v.sel.length:0)}}
-function upd(){const x=vtot();$('#vt').textContent='Total: '+$$(x.t)+' · '+ui.v.sel.length+' pollo(s) · '+x.lb.toFixed(1)+' lb'}
-function addV(){const l=L(),v=ui.v;if(!v.sel.length)return alert('Selecciona al menos un pollo');
-const x=vtot();l.ventas.push({cli:v.cli.trim()||'Cliente',dest:v.dest,idx:v.sel.slice().sort((a,b)=>a-b),lb:x.lb,n:v.sel.length,pl:v.pl,vis:!!v.vis,pv:v.pv,total:x.t});
+const pagado=x=>x.pagado===undefined?x.total:x.pagado;
+const saldo=x=>x.total-pagado(x);
+const vcount=x=>x.items?sum(x.items,i=>i.t==='vis'?i.q:i.t==='pv'?1:0):(x.solo?x.cant:(x.vis?x.n:0));
+const itemName=it=>it.t==='vis'?'Vísceras':it.t==='pv'?'Pollo con vísceras':'Pollo';
+function detalle(x){if(x.items)return x.items.map(it=>it.t==='vis'?'Vísceras x'+it.q:'Pollo #'+(it.idx+1)+' '+it.lb+' lb'+(it.t==='pv'?' + vísceras':'')).join('; ');
+if(x.solo)return 'Solo vísceras ('+x.cant+')';return((x.idx||[]).length?x.idx.map(j=>'#'+(j+1)).join(' '):x.n+' pollo(s)')+' · '+x.lb.toFixed(1)+' lb'}
+function clientes(){const m={};S.lotes.forEach(l=>l.ventas.forEach(x=>{const k=String(x.cli||'').trim().toUpperCase();if(k&&k!=='CLIENTE')m[k]=1}));return Object.keys(m).sort()}
+function setCli(i){ui.v.cli=ui.cl[i];ui.v.nuevo=0;render()}
+function nuevoCli(){ui.v.nuevo=1;ui.v.cli='';render()}
+function dest(d){ui.v.dest=d;render()}
+function libres(l){const m=dead(l),sd=sold(l);return l.pesos.map((p,i)=>i).filter(i=>!m[i]&&!sd.has(i))}
+function abrirCat(){ui.m={s:'cat'};render()}
+function abrirProd(t){const l=L();if(t!=='vis'&&libres(l).length<=ui.v.items.filter(i=>i.t!=='vis').length)return alert('Ya no quedan pollos disponibles en este lote');
+const pd=ui.v.dest==='pop'?{pl:S.p.pop,pv:S.p.visPop}:{pl:S.p.pueblo,pv:S.p.visPue};
+ui.m={s:'prod',t,lb:t==='vis'?0:5,q:1,pl:pd.pl,pv:pd.pv};render()}
+function cerrarM(){ui.m=null;render()}
+function msub(){const m=ui.m;return m.t==='vis'?m.pv*m.q:m.lb*m.pl+(m.t==='pv'?m.pv:0)}
+function mupd(){$('#msub').textContent='Subtotal: '+$$(msub())}
+function mlb(d){const m=ui.m;m.lb=Math.max(0,Math.round((m.lb+d)*10)/10);$('#mlb').value=m.lb;mupd()}
+function mset(n){ui.m.lb=n;$('#mlb').value=n;mupd()}
+function mq(d){const m=ui.m;m.q=Math.max(1,m.q+d);$('#mq').textContent=m.q;mupd()}
+function addItem(){const m=ui.m;if(m.t!=='vis'&&!(m.lb>0))return alert('Pon las libras del pollo');if(m.t!=='pollo'&&!(m.pv>0))return alert('Pon el precio de las vísceras');
+ui.v.items.push({t:m.t,lb:m.t==='vis'?0:m.lb,q:m.t==='vis'?m.q:1,pl:m.pl,pv:m.pv,sub:msub()});ui.m=null;render()}
+function quitarItem(i){ui.v.items.splice(i,1);render()}
+const vtotal=()=>sum(ui.v.items,i=>i.sub);
+function setPago(p){ui.v.pago=p;render()}
+function setEst(e){ui.v.est=e;render()}
+function ab(){const s=$('#abs');if(s)s.textContent='Queda debiendo: '+$$(vtotal()-ui.v.abono)}
+function addV(){const l=L(),v=ui.v,cli=v.cli.trim().toUpperCase();
+if(!cli)return alert('Escoge o escribe el cliente');if(!v.items.length)return alert('Agrega al menos un producto');
+const total=vtotal(),pag=v.est==='pago'?total:v.est==='abono'?v.abono:0;
+if(v.est==='abono'&&!(pag>0&&pag<total))return alert('El abono debe ser mayor que 0 y menor que el total');
+const np=v.items.filter(i=>i.t!=='vis').length;if(libres(l).length<np)return alert('No alcanzan los pollos disponibles');
+const used=new Set(),m=dead(l),sd=sold(l);
+const items=v.items.map(it=>{const o=Object.assign({},it);if(it.t!=='vis'){const fr=l.pesos.map((p,i)=>i).filter(i=>!m[i]&&!sd.has(i)&&!used.has(i));
+const k=fr.find(i=>!l.pesos[i]);const pick=k===undefined?fr[0]:k;o.idx=pick;o.pp=l.pesos[pick];l.pesos[pick]=it.lb;used.add(pick)}return o});
+const f=new Date().toISOString().slice(0,10);
+l.ventas.push({cli,dest:v.dest,items,idx:items.filter(i=>i.t!=='vis').map(i=>i.idx).sort((a,b)=>a-b),lb:sum(items,i=>i.lb),n:np,total,pago:v.pago,est:v.est,pagado:pag,abonos:pag>0?[{v:pag,m:v.pago,f}]:[],f});
 ui.v=nv();save();render()}
-function delV(i){L().ventas.splice(i,1);save();render()}
+function delV(i){const l=L(),x=l.ventas[i];if(!confirm('¿Borrar esta venta?'))return;(x.items||[]).forEach(it=>{if(it.idx!==undefined)l.pesos[it.idx]=it.pp||0});l.ventas.splice(i,1);save();render()}
+function abrirAbono(i){ui.m={s:'abono',i,v:saldo(L().ventas[i]),m:'efectivo'};render()}
+function regAbono(){const l=L(),m=ui.m,x=l.ventas[m.i],s=saldo(x);if(!(m.v>0))return alert('Pon el valor del abono');if(m.v>s+0.5)return alert('El abono no puede ser mayor que lo que debe ('+$$(s)+')');
+x.pagado=pagado(x)+m.v;x.abonos=x.abonos||[];x.abonos.push({v:m.v,m:m.m,f:new Date().toISOString().slice(0,10)});x.est=saldo(x)<=0.5?'pago':'abono';ui.m=null;save();render()}
+function modal(){const m=ui.m;if(!m)return '';let h='';
+if(m.s==='cat')h=`<h2>Agregar producto</h2><div class="tiles"><button onclick="abrirProd('pollo')"><span>🐔</span>Pollo</button><button onclick="abrirProd('vis')"><span>🥘</span>Vísceras</button><button style="grid-column:1/-1" onclick="abrirProd('pv')"><span>🍗</span>Pollo con vísceras</button></div><button class="w g" onclick="cerrarM()">Cancelar</button>`;
+else if(m.s==='prod'){h=`<div class="ic">${m.t==='vis'?'🥘':m.t==='pv'?'🍗':'🐔'}</div><h2 style="margin-top:6px">${m.t==='vis'?'Vísceras':m.t==='pv'?'Pollo con vísceras':'Pollo'}</h2>`+
+(m.t==='vis'?`<div class="st"><button onclick="mq(-1)">−</button><b id="mq">${m.q}</b><button onclick="mq(1)">+</button></div><p class="mu" style="margin:0 0 8px">cantidad de vísceras</p><label>Precio por vísceras</label><input type="number" inputmode="numeric" value="${m.pv}" oninput="ui.m.pv=num(this.value);mupd()">`
+:`<div class="st"><button onclick="mlb(-.5)">−</button><input id="mlb" type="text" inputmode="decimal" autocomplete="off" value="${m.lb}" oninput="ui.m.lb=num(this.value);mupd()"><button onclick="mlb(.5)">+</button></div><p class="mu" style="margin:0 0 8px">libras</p><div class="chips" style="justify-content:center">${[3,4,5,6,7,8].map(n=>`<button class="chip" onclick="mset(${n})">${n}</button>`).join('')}</div><label>Precio por libra</label><input type="number" inputmode="numeric" value="${m.pl}" oninput="ui.m.pl=num(this.value);mupd()">`+(m.t==='pv'?`<label>Precio vísceras</label><input type="number" inputmode="numeric" value="${m.pv}" oninput="ui.m.pv=num(this.value);mupd()">`:''))+
+`<div class="tot" id="msub">Subtotal: ${$$(msub())}</div><button class="w" onclick="addItem()">Agregar al pedido</button><button class="w g" onclick="abrirCat()">Volver al catálogo</button>`}
+else if(m.s==='abono'){const x=L().ventas[m.i];h=`<h2>Registrar abono</h2><p class="mu">${x.cli} debe ${$$(saldo(x))}</p><label>Valor del abono</label><input type="number" inputmode="numeric" value="${m.v||''}" oninput="ui.m.v=num(this.value)"><div class="chips" style="margin-top:8px"><button class="chip" onclick="ui.m.v=${saldo(x)};render()">Pagar todo</button></div><label>Forma de pago</label><div class="seg"><button class="${m.m==='efectivo'?'on':''}" onclick="ui.m.m='efectivo';render()">Efectivo</button><button class="${m.m==='transferencia'?'on':''}" onclick="ui.m.m='transferencia';render()">Transferencia</button></div><button class="w" onclick="regAbono()">Registrar abono</button><button class="w g" onclick="cerrarM()">Cancelar</button>`}
+return `<div class="ov" onclick="if(event.target===this)cerrarM()"><div class="md">${h}</div></div>`}
 let ip=null;addEventListener('beforeinstallprompt',e=>{e.preventDefault();ip=e});
 addEventListener('appinstalled',()=>{ip=null;render()});
 const enApp=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone;
@@ -102,12 +156,12 @@ if(j&&j.ok===false)throw new Error(j.error||'Error');st.textContent='Enviado ✓
 catch(e){st.textContent='Error: '+e.message}}
 function setSheet(v){const m=String(v).match(/\/d\/([a-zA-Z0-9_-]+)/);S.sheet=m?m[1]:String(v).trim();save();const a=$('#sl');if(a)a.href=sheetUrl()}
 function sheetUrl(){return S.sheet?'https://docs.google.com/spreadsheets/d/'+S.sheet+'/edit':'#'}
-function tablas(){const A={Lotes:[['Lote','Fecha','Pollos','Muertos','Vendidos','Libras vivos','Libras vendidas','Gastos','Ventas','Ganancia']],Gastos:[['Lote','Concepto','Valor']],Pollos:[['Lote','Pollo','Libras','Estado']],Ventas:[['Lote','Cliente','Destino','Pollos','Libras','Precio libra','Vísceras','Total']]};
+function tablas(){const A={Lotes:[['Lote','Fecha','Pollos','Muertos','Vendidos','Libras vivos','Libras vendidas','Gastos','Ventas','Ganancia']],Gastos:[['Lote','Concepto','Valor']],Pollos:[['Lote','Pollo','Libras','Estado']],Ventas:[['Lote','Cliente','Destino','Detalle','Libras','Total','Forma de pago','Estado','Pagado','Saldo']]};
 S.lotes.forEach(l=>{const s=stats(l),m=dead(l),sd=sold(l),n='Lote '+l.num;
 A.Lotes.push([n,l.fecha,l.cant,s.mu,s.pv,+s.lb.toFixed(1),+s.lv.toFixed(1),s.g,s.v,s.gan]);
 l.gastos.forEach(g=>A.Gastos.push([n,g.c,g.v]));
 l.pesos.forEach((p,i)=>A.Pollos.push([n,'#'+(i+1),p,m[i]?'Muerto':sd.has(i)?'Vendido':'Disponible']));
-l.ventas.forEach(v=>A.Ventas.push([n,v.cli,v.dest==='pop'?'Popayán':'Pueblo',(v.idx||[]).length?v.idx.map(j=>'#'+(j+1)).join(' '):v.n,+v.lb.toFixed(1),v.pl,v.vis?v.pv*v.n:0,v.total]))});return A}
+l.ventas.forEach(v=>A.Ventas.push([n,v.cli,v.dest==='pop'?'Popayán':'Pueblo',detalle(v),+v.lb.toFixed(1),v.total,v.pago==='transferencia'?'Transferencia':v.pago==='efectivo'?'Efectivo':'',v.est==='debe'?'Debe':v.est==='abono'?'Abono':'Pagó',pagado(v),saldo(v)]))});return A}
 async function traer(){const g=S.gs||{},st=$('#gst');if(!g.url)return alert('Pega la URL del Apps Script y la clave');
 if(S.lotes.length&&!confirm('Esto reemplaza los datos de este aparato con los de Google Sheets. ¿Continuar?'))return;
 st.textContent='Trayendo datos…';
@@ -146,7 +200,7 @@ ${ls||'<p class="mu">Aún no tienes lotes.</p>'}
 <a id="sl" href="${sheetUrl()}" target="_blank" rel="noopener" onclick="if(!S.sheet){event.preventDefault();alert('Primero pega el código de tu hoja')}" style="display:block;text-align:center;margin-top:12px;padding:11px;border:1px solid var(--au);border-radius:6px;color:var(--au);font-weight:700;letter-spacing:.05em;text-decoration:none">Abrir mi hoja de Google</a></div>
 ${instCard()}`}
 function lote(){const l=L(),s=stats(l),m=dead(l),sd=sold(l);
-const T=[['pollos','Pollos'],['gastos','Gastos'],['ventas','Ventas'],['res','Resumen']];let b='';
+const nd=l.ventas.filter(x=>saldo(x)>0.5).length;const T=[['pollos','Pollos'],['gastos','Gastos'],['ventas','Ventas'],['deu','Deudores'+(nd?' ('+nd+')':'')],['res','Resumen']];let b='';
 if(ui.tab==='pollos'){b=`<div class="c"><h2>Peso de cada pollo (libras)</h2><div class="pg">${l.pesos.map((p,i)=>`<div class="pk ${m[i]?'d':sd.has(i)?'s':''}"><div class="h"><span>#${i+1}${sd.has(i)?' · vendido':''}</span><button onclick="muerte(${i})">${m[i]?'Revivir':'Murió'}</button></div><input type="text" inputmode="decimal" autocomplete="off" value="${p||''}" placeholder="lb" ${m[i]?'disabled':''} oninput="peso(${i},this.value)"></div>`).join('')}</div>
 <div class="tot" id="pt"></div></div>`}
 if(ui.tab==='gastos'){const g=ui.g,tl=[['bulto','🌾','Bulto'],['vit','💊','Vitamina'],['tra','🚚','Transporte'],['otro','✏️','Otro gasto']];
@@ -155,17 +209,25 @@ if(g==='bulto')f=`<h2>Bultos de alimento</h2><p class="mu">${$$(S.p.bulto)} cada
 else if(g)f=`<h2>${g==='vit'?'Vitamina':g==='tra'?'Transporte':'Otro gasto'}</h2>${g==='otro'?'<label>Concepto</label><input id="gc" placeholder="Ej. Viruta, medicina">':''}<label>Valor</label><input id="gv" type="number" inputmode="numeric"><button class="w" onclick="addG('${g}')">Agregar</button>`;
 b=`<div class="c"><h2>Agregar gasto</h2><div class="tiles">${tl.map(t=>`<button class="${g===t[0]?'on':''}" onclick="selG('${t[0]}')"><span>${t[1]}</span>${t[2]}</button>`).join('')}</div>${f?`<div style="margin-top:14px">${f}</div>`:''}</div>
 <div class="c"><h2>Gastos del lote</h2>${l.gastos.map((x,i)=>`<div class="row"><span>${x.c}</span><span><b>${$$(x.v)}</b><button class="x" onclick="delG(${i})">✕</button></span></div>`).join('')||'<p class="mu">Sin gastos</p>'}<div class="tot">Total gastos: ${$$(s.g)}</div></div>`}
-if(ui.tab==='ventas'){const v=ui.v;
-const cat=l.pesos.map((p,i)=>{const on=v.sel.includes(i),why=m[i]?'muerto':sd.has(i)?'vendido':!p?'sin peso':'';
-return `<button class="${on?'on':''}" ${why?'disabled':''} onclick="tog(${i})">#${i+1}<small>${why||p+' lb'}</small></button>`}).join('');
-b=`<div class="c"><h2>Nueva venta</h2><label>Cliente</label><input value="${v.cli}" placeholder="Rumalda" oninput="ui.v.cli=this.value">
-<label>Escoge los pollos</label><div class="cat">${cat}</div>
-<div class="r"><div><label>Destino</label><select onchange="dest(this.value)"><option value="pue" ${v.dest==='pue'?'selected':''}>Pueblo</option><option value="pop" ${v.dest==='pop'?'selected':''}>Popayán</option></select></div>
-<div><label>Vísceras</label><select onchange="ui.v.vis=+this.value;render()"><option value="0">Sin vísceras</option><option value="1" ${v.vis?'selected':''}>Con vísceras</option></select></div>
-<div><label>Precio por libra</label><input type="number" inputmode="numeric" value="${v.pl}" oninput="ui.v.pl=num(this.value);upd()"></div>
-${v.vis?`<div><label>Vísceras (por pollo)</label><input type="number" inputmode="numeric" value="${v.pv}" oninput="ui.v.pv=num(this.value);upd()"></div>`:''}</div>
-<div class="tot" id="vt"></div><button class="w" onclick="addV()">Guardar venta</button></div>
-<div class="c"><h2>Ventas</h2><p class="mu">Libras sin vender: ${(s.lb-s.lv).toFixed(1)} lb</p>${l.ventas.map((x,i)=>`<div class="row"><div><b>${x.cli}</b> <span class="mu">${x.dest==='pop'?'Popayán':'Pueblo'}</span><div class="mu">${(x.idx||[]).length?x.idx.map(j=>'#'+(j+1)).join(', ')+' · ':x.n+' pollo(s) · '}${x.lb.toFixed(1)} lb × ${$$(x.pl)}${x.vis?' + vísceras '+$$(x.pv*x.n):''}</div></div><span><b>${$$(x.total)}</b><button class="x" onclick="delV(${i})">✕</button></span></div>`).join('')||'<p class="mu">Sin ventas</p>'}</div>`}
+if(ui.tab==='ventas'){const v=ui.v,cl=clientes();ui.cl=cl;const tot=vtotal();
+const chips=cl.map((n,i)=>`<button class="chip ${!v.nuevo&&v.cli.toUpperCase()===n?'on':''}" onclick="setCli(${i})">${n}</button>`).join('');
+const items=v.items.length?v.items.map((it,i)=>`<div class="row"><div><b>${itemName(it)}</b><div class="mu">${it.t==='vis'?it.q+' × '+$$(it.pv):it.lb+' lb × '+$$(it.pl)+(it.t==='pv'?' + vísceras '+$$(it.pv):'')}</div></div><span><b>${$$(it.sub)}</b><button class="x" onclick="quitarItem(${i})">✕</button></span></div>`).join(''):'<p class="mu" style="text-align:center;margin:14px 0">Aún no hay productos en el pedido.</p>';
+const lista=l.ventas.map((x,i)=>`<div class="row"><div><b>${x.cli}</b> <span class="mu">${x.dest==='pop'?'Popayán':'Pueblo'}</span>${x.est?`<span class="badge">${x.est==='pago'?'Pagó':x.est==='abono'?'Abono':'Debe'}</span>`:''}<div class="mu">${detalle(x)}${x.pago?' · '+(x.pago==='transferencia'?'Transferencia':'Efectivo'):''}</div>${saldo(x)>0.5?`<div class="bad">Saldo ${$$(saldo(x))}</div>`:''}</div><span><b>${$$(x.total)}</b><button class="x" onclick="delV(${i})">✕</button></span></div>`).join('')||'<p class="mu">Sin ventas</p>';
+b=`<div class="c"><h2>Nueva venta</h2><label>¿A quién le vendes?</label>
+<div class="chips"><button class="chip ${v.nuevo?'on':''}" onclick="nuevoCli()">+ Nuevo</button>${chips}</div>
+${v.nuevo?`<input placeholder="Nombre del cliente" value="${v.cli}" oninput="ui.v.cli=this.value" style="margin-top:6px">`:''}
+<label>Destino</label><div class="seg"><button class="${v.dest==='pue'?'on':''}" onclick="dest('pue')">Pueblo</button><button class="${v.dest==='pop'?'on':''}" onclick="dest('pop')">Popayán</button></div>
+<label>Productos</label>${items}
+<button class="w g" onclick="abrirCat()">+ Agregar producto</button>
+<div class="tot">Total: ${$$(tot)}</div>
+<label>Forma de pago</label><div class="seg"><button class="${v.pago==='efectivo'?'on':''}" onclick="setPago('efectivo')">Efectivo</button><button class="${v.pago==='transferencia'?'on':''}" onclick="setPago('transferencia')">Transferencia</button></div>
+<label>Estado</label><div class="seg"><button class="${v.est==='pago'?'on':''}" onclick="setEst('pago')">Pagó</button><button class="${v.est==='abono'?'on':''}" onclick="setEst('abono')">Abono</button><button class="${v.est==='debe'?'on':''}" onclick="setEst('debe')">Queda debiendo</button></div>
+${v.est==='abono'?`<label>¿Cuánto abona?</label><input type="number" inputmode="numeric" value="${v.abono||''}" oninput="ui.v.abono=num(this.value);ab()"><p class="mu" id="abs">Queda debiendo: ${$$(tot-v.abono)}</p>`:''}
+${v.est==='debe'?'<p class="mu">Todo el valor quedará pendiente en Deudores.</p>':''}
+<button class="w" onclick="addV()">Guardar venta</button></div>
+<div class="c"><h2>Ventas</h2><p class="mu">Pollos sin vender: ${libres(l).length}</p>${lista}</div>`}
+if(ui.tab==='deu'){const ds=l.ventas.map((x,i)=>[x,i]).filter(a=>saldo(a[0])>0.5);
+b=`<div class="c"><h2>Deudores</h2>${ds.map(a=>`<div class="row"><div><b>${a[0].cli}</b><div class="mu">${detalle(a[0])} · Total ${$$(a[0].total)}${a[0].f?' · '+fd(a[0].f):''}</div><div class="bad">Debe ${$$(saldo(a[0]))}</div></div><button onclick="abrirAbono(${a[1]})">Abonar</button></div>`).join('')||'<p class="mu">Nadie debe en este lote.</p>'}<div class="tot">Por cobrar: ${$$(sum(ds,a=>saldo(a[0])))}</div></div>`}
 if(ui.tab==='res'){const d=k=>l.ventas.filter(x=>x.dest===k);
 b=`<div class="c"><div class="k"><div><span class="mu">Gastos</span><div class="big bad">${$$(s.g)}</div></div><div><span class="mu">Ventas</span><div class="big">${$$(s.v)}</div></div></div>
 <div class="tot"><span class="mu">Ganancia</span><div class="big ${s.gan>=0?'ok':'bad'}">${$$(s.gan)}</div></div></div>
@@ -173,18 +235,23 @@ b=`<div class="c"><div class="k"><div><span class="mu">Gastos</span><div class="
 <div class="row"><span>Pollos metidos</span><b>${l.cant}</b></div>
 <div class="row"><span>Muertos</span><b class="bad">${s.mu} (${Math.round(s.mu/l.cant*100)}%)</b></div>
 <div class="row"><span>Vendidos</span><b>${s.pv}</b></div>
+<div class="row"><span>Vísceras vendidas</span><b>${sum(l.ventas,vcount)}</b></div>
 <div class="row"><span>Libras totales (vivos)</span><b>${s.lb.toFixed(1)} lb</b></div>
 <div class="row"><span>Libras vendidas</span><b>${s.lv.toFixed(1)} lb</b></div>
 <div class="row"><span>Costo por libra</span><b>${s.lb?$$(s.g/s.lb):'-'}</b></div>
 <div class="row"><span>Ganancia por libra vendida</span><b>${s.lv?$$(s.gan/s.lv):'-'}</b></div>
 <div class="row"><span>Margen</span><b>${s.v?Math.round(s.gan/s.v*100)+'%':'-'}</b></div>
+<div class="row"><span>Cobrado</span><b>${$$(sum(l.ventas,pagado))}</b></div>
+<div class="row"><span>Por cobrar</span><b class="${s.v-sum(l.ventas,pagado)>0.5?'bad':''}">${$$(s.v-sum(l.ventas,pagado))}</b></div>
+<div class="row"><span>Cobrado en efectivo</span><b>${$$(sum(l.ventas,x=>sum(x.abonos||[],a=>a.m==='efectivo'?a.v:0)))}</b></div>
+<div class="row"><span>Cobrado por transferencia</span><b>${$$(sum(l.ventas,x=>sum(x.abonos||[],a=>a.m==='transferencia'?a.v:0)))}</b></div>
 <div class="row"><span>Pueblo</span><b>${$$(sum(d('pue'),x=>x.total))}</b></div>
 <div class="row"><span>Popayán</span><b>${$$(sum(d('pop'),x=>x.total))}</b></div></div>
 <button class="w g" onclick="borrarLote()">Borrar lote</button>`}
 return `<button class="g" onclick="go(null)">← Lotes</button><h1>Lote ${l.num} <span class="mu" style="font-size:15px;font-family:system-ui">${fd(l.fecha)} · ${l.cant} pollos</span></h1>
-<div class="tabs">${T.map(t=>`<button class="${ui.tab===t[0]?'on':''}" onclick="go(${l.id},'${t[0]}')">${t[1]}</button>`).join('')}</div>${b}`}
+<div class="tabs">${T.map(t=>`<button class="${ui.tab===t[0]?'on':''}" onclick="go(${l.id},'${t[0]}')">${t[1]}</button>`).join('')}</div>${b}${modal()}`}
 function render(){const y=scrollY;$('#app').innerHTML=ui.id&&L()?lote():home();
-if(ui.id&&ui.tab==='pollos')tp();if(ui.id&&ui.tab==='ventas')upd();scrollTo(0,y)}
+if(ui.id&&ui.tab==='pollos')tp();scrollTo(0,y)}
 render();
 if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));
 </script></body></html>
