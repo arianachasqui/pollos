@@ -61,7 +61,10 @@ S.p=Object.assign({pueblo:7500,pop:8000,visPop:5000,visPue:3500,bulto:100000},S.
 if(!S.p.visPue)S.p.visPue=3500;
 const save=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}};
 const $=s=>document.querySelector(s);
-const $$=n=>'$'+Math.round(n||0).toLocaleString('es-CO');
+const fmt=n=>{n=Math.round(n||0);return (n<0?'-':'')+String(Math.abs(n)).replace(/\B(?=(\d{3})+(?!\d))/g,'.')};
+const money=v=>parseInt(String(v).replace(/\D/g,''))||0;
+const $$=n=>'$'+fmt(n);
+document.addEventListener('input',e=>{const t=e.target;if(!t.classList||!t.classList.contains('mny'))return;const p=t.selectionStart,b=t.value.length;const d=money(t.value);t.value=d?fmt(d):'';const q=Math.max(0,p+t.value.length-b);try{t.setSelectionRange(q,q)}catch(_){}});
 const fd=d=>d.split('-').reverse().join('/');
 const num=v=>parseFloat(String(v).replace(',','.'))||0;
 const sum=(a,f)=>a.reduce((s,x)=>s+f(x),0);
@@ -73,12 +76,12 @@ const sold=l=>{const s=new Set();l.ventas.forEach(v=>(v.idx||[]).forEach(i=>s.ad
 function stats(l){const m=dead(l);const lb=sum(l.pesos.map((p,i)=>m[i]?0:p),x=>x);const g=sum(l.gastos,x=>x.v),v=sum(l.ventas,x=>x.total);
 return{g,v,gan:v-g,lb,lv:sum(l.ventas,x=>x.lb),pv:sum(l.ventas,x=>x.n),mu:Object.keys(m).length}}
 function go(id,tab){ui.id=id;ui.tab=tab||'pollos';ui.g=null;ui.m=null;ui.v=nv();render();scrollTo(0,0)}
-function crear(){const f=$('#fe').value,n=parseInt($('#cn').value),pp=num($('#cp').value);
+function crear(){const f=$('#fe').value,n=parseInt($('#cn').value),pp=money($('#cp').value);
 if(!f||!n)return alert('Pon la fecha y la cantidad de pollos');
 const l={id:Date.now(),num:S.lotes.length+1,fecha:f,cant:n,pesos:Array(n).fill(0),m:{},gastos:[],ventas:[]};
 if(pp)l.gastos.push({c:'Pollitos ('+n+')',v:pp*n});
 S.lotes.push(l);save();go(l.id)}
-function precio(k,v){S.p[k]=num(v);save()}
+function precio(k,v){S.p[k]=money(v);save()}
 function borrarLote(){if(confirm('¿Borrar este lote completo?')){S.lotes=S.lotes.filter(l=>l.id!==ui.id);save();ui.id=null;render()}}
 function peso(i,v){const l=L();l.pesos[i]=num(v);save();tp()}
 function tp(){const l=L(),s=stats(l),m=dead(l);$('#pt').textContent=s.lb.toFixed(1)+' lb · '+(l.cant-s.mu)+' vivos · '+s.mu+' muertos'}
@@ -86,7 +89,7 @@ function muerte(i){const l=L(),m=dead(l);if(m[i])delete m[i];else{if(sold(l).has
 function selG(k){ui.g=ui.g===k?null:k;ui.q=1;render()}
 function qty(d){ui.q=Math.max(1,ui.q+d);$('#qn').textContent=ui.q;$('#qt').textContent=$$(ui.q*S.p.bulto)}
 function addB(){L().gastos.push({c:'Bultos de alimento x'+ui.q,v:ui.q*S.p.bulto});ui.g=null;save();render()}
-function addG(k){const v=num($('#gv').value);const c=k==='vit'?'Vitamina':k==='tra'?'Transporte':($('#gc').value.trim());
+function addG(k){const v=money($('#gv').value);const c=k==='vit'?'Vitamina':k==='tra'?'Transporte':($('#gc').value.trim());
 if(!c||!v)return alert('Falta el valor'+(k==='otro'?' o el concepto':''));L().gastos.push({c,v});ui.g=null;save();render()}
 function delG(i){L().gastos.splice(i,1);save();render()}
 const pagado=x=>x.pagado===undefined?x.total:x.pagado;
@@ -135,10 +138,10 @@ x.pagado=pagado(x)+m.v;x.abonos=x.abonos||[];x.abonos.push({v:m.v,m:m.m,f:new Da
 function modal(){const m=ui.m;if(!m)return '';let h='';
 if(m.s==='cat')h=`<h2>Agregar producto</h2><div class="tiles"><button onclick="abrirProd('pollo')"><span>🐔</span>Pollo</button><button onclick="abrirProd('vis')"><span>🥘</span>Vísceras</button><button style="grid-column:1/-1" onclick="abrirProd('pv')"><span>🍗</span>Pollo con vísceras</button></div><button class="w g" onclick="cerrarM()">Cancelar</button>`;
 else if(m.s==='prod'){h=`<div class="ic">${m.t==='vis'?'🥘':m.t==='pv'?'🍗':'🐔'}</div><h2 style="margin-top:6px">${m.t==='vis'?'Vísceras':m.t==='pv'?'Pollo con vísceras':'Pollo'}</h2>`+
-(m.t==='vis'?`<div class="st"><button onclick="mq(-1)">−</button><b id="mq">${m.q}</b><button onclick="mq(1)">+</button></div><p class="mu" style="margin:0 0 8px">cantidad de vísceras</p><label>Precio por vísceras</label><input type="number" inputmode="numeric" value="${m.pv}" oninput="ui.m.pv=num(this.value);mupd()">`
-:`<div class="st"><button onclick="mlb(-.5)">−</button><input id="mlb" type="text" inputmode="decimal" autocomplete="off" value="${m.lb}" oninput="ui.m.lb=num(this.value);mupd()"><button onclick="mlb(.5)">+</button></div><p class="mu" style="margin:0 0 8px">libras</p><div class="chips" style="justify-content:center">${[3,4,5,6,7,8].map(n=>`<button class="chip" onclick="mset(${n})">${n}</button>`).join('')}</div><label>Precio por libra</label><input type="number" inputmode="numeric" value="${m.pl}" oninput="ui.m.pl=num(this.value);mupd()">`+(m.t==='pv'?`<label>Precio vísceras</label><input type="number" inputmode="numeric" value="${m.pv}" oninput="ui.m.pv=num(this.value);mupd()">`:''))+
+(m.t==='vis'?`<div class="st"><button onclick="mq(-1)">−</button><b id="mq">${m.q}</b><button onclick="mq(1)">+</button></div><p class="mu" style="margin:0 0 8px">cantidad de vísceras</p><label>Precio por vísceras</label><input type="text" inputmode="numeric" autocomplete="off" class="mny" value="${fmt(m.pv)}" oninput="ui.m.pv=money(this.value);mupd()">`
+:`<div class="st"><button onclick="mlb(-.5)">−</button><input id="mlb" type="text" inputmode="decimal" autocomplete="off" value="${m.lb}" oninput="ui.m.lb=num(this.value);mupd()"><button onclick="mlb(.5)">+</button></div><p class="mu" style="margin:0 0 8px">libras</p><div class="chips" style="justify-content:center">${[3,4,5,6,7,8].map(n=>`<button class="chip" onclick="mset(${n})">${n}</button>`).join('')}</div><label>Precio por libra</label><input type="text" inputmode="numeric" autocomplete="off" class="mny" value="${fmt(m.pl)}" oninput="ui.m.pl=money(this.value);mupd()">`+(m.t==='pv'?`<label>Precio vísceras</label><input type="text" inputmode="numeric" autocomplete="off" class="mny" value="${fmt(m.pv)}" oninput="ui.m.pv=money(this.value);mupd()">`:''))+
 `<div class="tot" id="msub">Subtotal: ${$$(msub())}</div><button class="w" onclick="addItem()">Agregar al pedido</button><button class="w g" onclick="abrirCat()">Volver al catálogo</button>`}
-else if(m.s==='abono'){const x=L().ventas[m.i];h=`<h2>Registrar abono</h2><p class="mu">${x.cli} debe ${$$(saldo(x))}</p><label>Valor del abono</label><input type="number" inputmode="numeric" value="${m.v||''}" oninput="ui.m.v=num(this.value)"><div class="chips" style="margin-top:8px"><button class="chip" onclick="ui.m.v=${saldo(x)};render()">Pagar todo</button></div><label>Forma de pago</label><div class="seg"><button class="${m.m==='efectivo'?'on':''}" onclick="ui.m.m='efectivo';render()">Efectivo</button><button class="${m.m==='transferencia'?'on':''}" onclick="ui.m.m='transferencia';render()">Transferencia</button></div><button class="w" onclick="regAbono()">Registrar abono</button><button class="w g" onclick="cerrarM()">Cancelar</button>`}
+else if(m.s==='abono'){const x=L().ventas[m.i];h=`<h2>Registrar abono</h2><p class="mu">${x.cli} debe ${$$(saldo(x))}</p><label>Valor del abono</label><input type="text" inputmode="numeric" autocomplete="off" class="mny" value="${m.v?fmt(m.v):''}" oninput="ui.m.v=money(this.value)"><div class="chips" style="margin-top:8px"><button class="chip" onclick="ui.m.v=${saldo(x)};render()">Pagar todo</button></div><label>Forma de pago</label><div class="seg"><button class="${m.m==='efectivo'?'on':''}" onclick="ui.m.m='efectivo';render()">Efectivo</button><button class="${m.m==='transferencia'?'on':''}" onclick="ui.m.m='transferencia';render()">Transferencia</button></div><button class="w" onclick="regAbono()">Registrar abono</button><button class="w g" onclick="cerrarM()">Cancelar</button>`}
 return `<div class="ov" onclick="if(event.target===this)cerrarM()"><div class="md">${h}</div></div>`}
 let ip=null;addEventListener('beforeinstallprompt',e=>{e.preventDefault();ip=e});
 addEventListener('appinstalled',()=>{ip=null;render()});
@@ -182,11 +185,11 @@ alert('Datos copiados. En Google Sheets toca una celda y pega.')}
 function home(){const ls=S.lotes.slice().reverse().map(l=>{const s=stats(l);
 return `<div class="c" onclick="go(${l.id})" style="cursor:pointer"><div class="row" style="border:0;padding:0"><div><b class="au">Lote ${l.num}</b> <span class="mu">· ${fd(l.fecha)}</span><div class="mu">${l.cant} pollos · ${s.lb.toFixed(1)} lb · ${s.mu} muertos</div></div>
 <div style="text-align:right"><div class="mu">Ganancia</div><b class="${s.gan>=0?'ok':'bad'}">${$$(s.gan)}</b></div></div></div>`}).join('');
-const P=(k,t)=>`<div><label>${t}</label><input type="number" inputmode="numeric" value="${S.p[k]}" oninput="precio('${k}',this.value)"></div>`;
+const P=(k,t)=>`<div><label>${t}</label><input type="text" inputmode="numeric" autocomplete="off" class="mny" value="${fmt(S.p[k])}" oninput="precio('${k}',this.value)"></div>`;
 return `<h1>Nuevo Amanecer</h1><p class="mu sub">Control de lotes · Avícola</p>
 <div class="c"><h2>Nuevo lote</h2><label>Fecha de entrada</label><input id="fe" type="date" value="${new Date().toISOString().slice(0,10)}">
 <div class="r"><div><label>Cantidad de pollos</label><input id="cn" type="number" inputmode="numeric" placeholder="80"></div>
-<div><label>Precio por pollito</label><input id="cp" type="number" inputmode="numeric" placeholder="0"></div></div>
+<div><label>Precio por pollito</label><input id="cp" type="text" inputmode="numeric" autocomplete="off" class="mny" placeholder="0"></div></div>
 <button class="w" onclick="crear()">Crear lote</button></div>
 ${ls||'<p class="mu">Aún no tienes lotes.</p>'}
 <div class="c"><h2>Precios por defecto</h2><div class="r">${P('pueblo','Libra en el pueblo')}${P('pop','Libra en Popayán')}${P('visPue','Vísceras pueblo')}${P('visPop','Vísceras Popayán')}${P('bulto','Bulto de alimento')}</div>
@@ -206,7 +209,7 @@ if(ui.tab==='pollos'){b=`<div class="c"><h2>Peso de cada pollo (libras)</h2><div
 if(ui.tab==='gastos'){const g=ui.g,tl=[['bulto','🌾','Bulto'],['vit','💊','Vitamina'],['tra','🚚','Transporte'],['otro','✏️','Otro gasto']];
 let f='';
 if(g==='bulto')f=`<h2>Bultos de alimento</h2><p class="mu">${$$(S.p.bulto)} cada uno</p><div class="st"><button onclick="qty(-1)">−</button><b id="qn">${ui.q}</b><button onclick="qty(1)">+</button></div><div class="tot" id="qt">${$$(ui.q*S.p.bulto)}</div><button class="w" onclick="addB()">Agregar bultos</button>`;
-else if(g)f=`<h2>${g==='vit'?'Vitamina':g==='tra'?'Transporte':'Otro gasto'}</h2>${g==='otro'?'<label>Concepto</label><input id="gc" placeholder="Ej. Viruta, medicina">':''}<label>Valor</label><input id="gv" type="number" inputmode="numeric"><button class="w" onclick="addG('${g}')">Agregar</button>`;
+else if(g)f=`<h2>${g==='vit'?'Vitamina':g==='tra'?'Transporte':'Otro gasto'}</h2>${g==='otro'?'<label>Concepto</label><input id="gc" placeholder="Ej. Viruta, medicina">':''}<label>Valor</label><input id="gv" type="text" inputmode="numeric" autocomplete="off" class="mny"><button class="w" onclick="addG('${g}')">Agregar</button>`;
 b=`<div class="c"><h2>Agregar gasto</h2><div class="tiles">${tl.map(t=>`<button class="${g===t[0]?'on':''}" onclick="selG('${t[0]}')"><span>${t[1]}</span>${t[2]}</button>`).join('')}</div>${f?`<div style="margin-top:14px">${f}</div>`:''}</div>
 <div class="c"><h2>Gastos del lote</h2>${l.gastos.map((x,i)=>`<div class="row"><span>${x.c}</span><span><b>${$$(x.v)}</b><button class="x" onclick="delG(${i})">✕</button></span></div>`).join('')||'<p class="mu">Sin gastos</p>'}<div class="tot">Total gastos: ${$$(s.g)}</div></div>`}
 if(ui.tab==='ventas'){const v=ui.v,cl=clientes();ui.cl=cl;const tot=vtotal();
@@ -222,7 +225,7 @@ ${v.nuevo?`<input placeholder="Nombre del cliente" value="${v.cli}" oninput="ui.
 <div class="tot">Total: ${$$(tot)}</div>
 <label>Forma de pago</label><div class="seg"><button class="${v.pago==='efectivo'?'on':''}" onclick="setPago('efectivo')">Efectivo</button><button class="${v.pago==='transferencia'?'on':''}" onclick="setPago('transferencia')">Transferencia</button></div>
 <label>Estado</label><div class="seg"><button class="${v.est==='pago'?'on':''}" onclick="setEst('pago')">Pagó</button><button class="${v.est==='abono'?'on':''}" onclick="setEst('abono')">Abono</button><button class="${v.est==='debe'?'on':''}" onclick="setEst('debe')">Queda debiendo</button></div>
-${v.est==='abono'?`<label>¿Cuánto abona?</label><input type="number" inputmode="numeric" value="${v.abono||''}" oninput="ui.v.abono=num(this.value);ab()"><p class="mu" id="abs">Queda debiendo: ${$$(tot-v.abono)}</p>`:''}
+${v.est==='abono'?`<label>¿Cuánto abona?</label><input type="text" inputmode="numeric" autocomplete="off" class="mny" value="${v.abono?fmt(v.abono):''}" oninput="ui.v.abono=money(this.value);ab()"><p class="mu" id="abs">Queda debiendo: ${$$(tot-v.abono)}</p>`:''}
 ${v.est==='debe'?'<p class="mu">Todo el valor quedará pendiente en Deudores.</p>':''}
 <button class="w" onclick="addV()">Guardar venta</button></div>
 <div class="c"><h2>Ventas</h2><p class="mu">Pollos sin vender: ${libres(l).length}</p>${lista}</div>`}
