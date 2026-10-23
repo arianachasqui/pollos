@@ -159,9 +159,10 @@ if(j&&j.ok===false)throw new Error(j.error||'Error');st.textContent='Enviado ✓
 catch(e){st.textContent='Error: '+e.message}}
 function setSheet(v){const m=String(v).match(/\/d\/([a-zA-Z0-9_-]+)/);S.sheet=m?m[1]:String(v).trim();save();const a=$('#sl');if(a)a.href=sheetUrl()}
 function sheetUrl(){return S.sheet?'https://docs.google.com/spreadsheets/d/'+S.sheet+'/edit':'#'}
-function tablas(){const A={Lotes:[['Lote','Fecha','Pollos','Muertos','Vendidos','Libras vivos','Libras vendidas','Gastos','Ventas','Ganancia']],Gastos:[['Lote','Concepto','Valor']],Pollos:[['Lote','Pollo','Libras','Estado']],Ventas:[['Lote','Cliente','Destino','Detalle','Libras','Total','Forma de pago','Estado','Pagado','Saldo']]};
+const diezmo=s=>Math.max(0,s.gan)*0.1;
+function tablas(){const A={Lotes:[['Lote','Fecha','Pollos','Muertos','Vendidos','Libras vivos','Libras vendidas','Gastos','Ventas','Ganancia','Diezmo']],Gastos:[['Lote','Concepto','Valor']],Pollos:[['Lote','Pollo','Libras','Estado']],Ventas:[['Lote','Cliente','Destino','Detalle','Libras','Total','Forma de pago','Estado','Pagado','Saldo']]};
 S.lotes.forEach(l=>{const s=stats(l),m=dead(l),sd=sold(l),n='Lote '+l.num;
-A.Lotes.push([n,l.fecha,l.cant,s.mu,s.pv,+s.lb.toFixed(1),+s.lv.toFixed(1),s.g,s.v,s.gan]);
+A.Lotes.push([n,l.fecha,l.cant,s.mu,s.pv,+s.lb.toFixed(1),+s.lv.toFixed(1),s.g,s.v,s.gan,Math.round(diezmo(s))]);
 l.gastos.forEach(g=>A.Gastos.push([n,g.c,g.v]));
 l.pesos.forEach((p,i)=>A.Pollos.push([n,'#'+(i+1),p,m[i]?'Muerto':sd.has(i)?'Vendido':'Disponible']));
 l.ventas.forEach(v=>A.Ventas.push([n,v.cli,v.dest==='pop'?'Popayán':'Pueblo',detalle(v),+v.lb.toFixed(1),v.total,v.pago==='transferencia'?'Transferencia':v.pago==='efectivo'?'Efectivo':'',v.est==='debe'?'Debe':v.est==='abono'?'Abono':'Pagó',pagado(v),saldo(v)]))});return A}
@@ -234,6 +235,9 @@ b=`<div class="c"><h2>Deudores</h2>${ds.map(a=>`<div class="row"><div><b>${a[0].
 if(ui.tab==='res'){const d=k=>l.ventas.filter(x=>x.dest===k);
 b=`<div class="c"><div class="k"><div><span class="mu">Gastos</span><div class="big bad">${$$(s.g)}</div></div><div><span class="mu">Ventas</span><div class="big">${$$(s.v)}</div></div></div>
 <div class="tot"><span class="mu">Ganancia</span><div class="big ${s.gan>=0?'ok':'bad'}">${$$(s.gan)}</div></div></div>
+<div class="c"><h2>Diezmo</h2><p class="mu">10% de la ganancia. Se va sumando a medida que registras ventas.</p>
+<div class="tot"><span class="mu">Diezmo a apartar</span><div class="big">${$$(diezmo(s))}</div></div>
+<div class="row" style="margin-top:8px"><span>Ganancia después del diezmo</span><b>${$$(s.gan-diezmo(s))}</b></div></div>
 <div class="c"><h2>Detalle</h2>
 <div class="row"><span>Pollos metidos</span><b>${l.cant}</b></div>
 <div class="row"><span>Muertos</span><b class="bad">${s.mu} (${Math.round(s.mu/l.cant*100)}%)</b></div>
